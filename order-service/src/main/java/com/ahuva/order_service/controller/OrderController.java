@@ -10,6 +10,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.UUID;
 
@@ -25,11 +27,18 @@ public class OrderController {
     @PostMapping(path = "/orders", produces = "application/json")
     public ResponseEntity<String> placeOrder(@RequestBody Order order) {
         order.setOrderId(UUID.randomUUID().toString());
+        order.setOrderDate(getDate());
         OrderEvent orderEvent = new OrderEvent();
         orderEvent.setStatus("PENDING");
         orderEvent.setMessage("Order is in Pending status " + new Date());
         orderEvent.setOrder(order);
         orderProducer.sendMessage(orderEvent);
         return new ResponseEntity<>("Order was successfully created", CREATED);
+    }
+
+    private String getDate() {
+        LocalDate today = LocalDate.now();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM/dd/yyyy");
+        return today.format(formatter);
     }
 }
